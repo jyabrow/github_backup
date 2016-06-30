@@ -1,0 +1,16 @@
+# Ubuntu /etc/cron.d crontab file for github org backup procedure
+
+# Run github backup script once every 30 minutes, output to logfile, use flock to avoid running multiple simultaneous commands
+*/30 * * * * root /usr/bin/flock -n /tmp/github_backup_lock /usr/bin/python /home/yabrow/git/git_backup_repos.py --local-repodir /data/git_repo_backups 2>&1 > `/bin/date +/var/log/github_repo_backups/bkp_\%Y-\%m-\%d_\%H.\%M.\%S.log`
+
+# Run log cleanup once a day at 5:00pm, delete github backup log files older than 30 days
+0 17 * * * root find /var/log/github_repo_backups -name 'bkp_*' -mtime +30 | xargs --no-run-if-empty rm
+
+
+# Test 'date' cron entries for special charater escape needs, these work
+#* * * * * root echo hello >> /var/log/cron.d.test.log
+#* * * * * root echo `/bin/date \+\%Y` >> /var/log/cron.d.test.log
+#* * * * * root echo `/bin/date \+\%Y-\%m-\%d` >> /var/log/cron.d.test.log
+#* * * * * root echo `/bin/date \+\%Y-\%m-\%d_\%H.\%M.\%S` >> /var/log/cron.d.test.log
+#* * * * * root echo `/bin/date +/var/log/github_repo_backups/bkp_\%Y-\%m-\%d_\%H.\%M.\%S` >> /var/log/cron.d.test.log
+#* * * * * root env > /tmp/env.output
